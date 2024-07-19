@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type='text/xsl' href='configuration.xsl'?>
+<configuration>
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:mysql://hadoop104:3306/metastore?createDatabaseInNotExist=true</value>
+        <description>JDBC connection string for a JDBC metastore</description>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>com.mysql.jdbc.Driver</value>
+        <description>Driver class name for a JDBC metastore</description>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>root</value>
+        <description>username to use against metastore database</description>
+    </property>
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>scq355</value>
+        <description>passwrod to use against metastore database</description>
+    </property>
+    <property>
+        <name>hive.metastore.warehouse.dir</name>
+        <value>/usr/hive/warehouse</value>
+    </property>
+    <property>
+        <name>hive.metastore.schema.verfication</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>hive.server2.thrift.port</name>
+        <value>10000</value>
+    </property>
+    <property>
+        <name>hive.server2.thrift.bind.host</name>
+        <value>hadoop104</value>
+    </property>
+    <property>
+        <name>hive.metastore.event.db.notification.api.auth</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>hive.cli.print.header</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.cli.print.current.db</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>hive.exec.dynamic.partition.mode</name>
+        <value>nonstrict</value>
+    </property>
+    <!--<property>
+        <name>spark.yarn.jars</name>
+        <value>hdfs://hadoop104:8020/spark-jars/*</value>
+    </property>
+    <property>
+        <name>hive.execution.engine</name>
+        <value>spark</value>
+    </property>
+    <property>
+        <name>hive.spark.client.connect.timeout</name>
+        <value>50000ms</value>
+    </property> -->
+</configuration>
