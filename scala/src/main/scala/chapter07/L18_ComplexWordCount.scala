@@ -7,7 +7,7 @@ object L18_ComplexWordCount {
     )
 
 
-    val newStringList:List[String] = tupleList.map(
+    val newStringList: List[String] = tupleList.map(
       kv => {
         (kv._1.trim + " ") * kv._2
       }

@@ -6,9 +6,9 @@ object L17_CommonWordCount {
       "hello", "hello world", "hello scala", "hello spark from scala", "hello flink from scala"
     )
 
-//    val wordList1: List[Array[String]] = stringList.map(_.split(" "))
-//    val wordList2: List[String] = wordList1.flatten
-//    println(wordList2)
+    //    val wordList1: List[Array[String]] = stringList.map(_.split(" "))
+    //    val wordList2: List[String] = wordList1.flatten
+    //    println(wordList2)
 
     val wordList = stringList.flatMap(_.split(" "))
     println(wordList)
