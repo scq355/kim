@@ -740,4 +740,222 @@ SET hive.strict.checks.orderby.no.limit=true;
 SET hive.strict.checks.cartesian.product=true;
 
 
+-- practice
+-- 会话划分问题
+-- 相邻两次会话间隔小于60s属于同一 会话，为属于同一会话访问记录增加一个相同的会话id字段
+CREATE DATABASE hive_advanced;
+
+CREATE TABLE IF NOT EXISTS page_view_events (
+                                                user_id INT COMMENT '用户id',
+                                                page_id STRING COMMENT '页面id',
+                                                view_timestamp BIGINT COMMENT '访问时间戳'
+) COMMENT '页面访问记录';
+
+
+SELECT
+    user_id,
+    page_id,
+    view_timestamp,
+    user_id || '' || sum(num) OVER(PARTITION BY user_id ORDER BY view_timestamp)
+FROM
+    (
+        SELECT
+            user_id,
+            page_id,
+            view_timestamp,
+            `if`(view_timestamp - last_page_view > 60, 1, 0) num
+        FROM
+            (
+                SELECT
+                    user_id,
+                    page_id,
+                    view_timestamp,
+                    lag(view_timestamp, 1, 0) OVER (PARTITION BY user_id ORDER BY view_timestamp) last_page_view
+                FROM page_view_events
+            ) t1
+    ) t2;
+
+
+-- 间断连续登录问题
+-- 各个用户最长连续登录，间断一天也算连续
+CREATE TABLE IF NOT EXISTS login_events (
+                                            user_id INT COMMENT '用户id',
+                                            login_datetime STRING COMMENT '登录时间'
+) COMMENT '直播间访问记录';
+
+-- 真正连续
+SELECT
+    user_id,
+    max(cnt) max_cnt
+FROM (
+         SELECT
+             user_id,
+             count(*) cnt
+         FROM
+             (
+                 SELECT
+                     user_id,
+                     login_date,
+                     date_sub(login_date, rk) diff
+                 FROM
+                     (
+                         SELECT
+                             user_id,
+                             login_date,
+                             rank() OVER (PARTITION BY user_id ORDER BY login_date) rk
+                         FROM
+                             (
+                                 SELECT
+                                     DISTINCT
+                                     user_id,
+                                     date_format(login_datetime, 'yyyy-MM-dd') login_date
+                                 FROM login_events
+                             ) t1
+                     ) t2
+             )t3
+         GROUP BY user_id, diff
+     ) t4
+GROUP BY user_id;
+
+--间断连续
+SELECT
+    user_id,
+    login_date,
+    new_login_date
+FROM (
+         SELECT
+             user_id,
+             login_date,
+             `if`(datediff(next_login_date, login_date) = 2,
+                  `array`(login_date, date_add(login_date, 1)), `array`(login_date)) arr
+         FROM
+             (
+                 SELECT
+                     user_id,
+                     login_date,
+                     lead(login_date, 1, '9999-12-31') OVER (PARTITION BY user_id ORDER BY login_date) next_login_date
+                 FROM
+                     (
+                         SELECT
+                             DISTINCT
+                             user_id,
+                             date_format(login_datetime, 'yyyy-MM-dd') login_date
+                         FROM login_events
+                     ) t1
+             ) t2
+     ) t3 LATERAL VIEW explode(arr) tmp AS new_login_date;
+
+
+SELECT
+    user_id,
+    max(cnt)
+FROM
+    (
+        SELECT
+            user_id,
+            s as session_id,
+            datediff(max(login_date), min(login_date)) + 1 cnt
+        FROM
+            (
+                SELECT
+                    user_id,
+                    login_date,
+                    user_id || '-' || sum(start_point) OVER (PARTITION BY user_id ORDER BY login_date) s
+                FROM
+                    (
+                        SELECT
+                            user_id,
+                            login_date,
+                            `if`(datediff(login_date, last_login_date) > 2, 1, 0) start_point
+                        FROM
+                            (
+                                SELECT
+                                    user_id,
+                                    login_date,
+                                    lag(login_date, 1, '1979-01-01') OVER (PARTITION BY user_id ORDER BY login_date) last_login_date
+                                FROM
+                                    (
+                                        SELECT
+                                            DISTINCT
+                                            user_id,
+                                            date_format(login_datetime, 'yyyy-MM-dd') login_date
+                                        FROM login_events
+                                    ) t1
+                            ) t2
+                    ) t3
+            )t4 GROUP BY user_id,s
+    ) t5;
+
+
+-- 日期交叉问题
+-- 统计每个品牌的优惠总天数，若某个品牌在同一天有多个优惠活动，则只按照一天计算（同一品牌不同活动周期可能会有交叉）
+CREATE TABLE IF NOT EXISTS promotion_info (
+                                              promotion_id STRING COMMENT '优惠活动id',
+                                              brand STRING COMMENT '优惠品牌',
+                                              start_date STRING COMMENT '优惠活动开始日期',
+                                              end_date STRING COMMENT '优惠活动结束日期'
+) COMMENT '各品牌活动周期表';
+
+
+SELECT
+    brand,
+    sum(datediff(end_date, new_start_date) + 1)
+FROM
+    (
+        SELECT
+            promotion_id,
+            brand,
+            end_date,
+            `if`(max_end_date IS NULL, start_date,
+                 `if`(start_date > max_end_date, date_add(max_end_date, 1))) new_start_date
+        FROM
+            (
+                SELECT
+                    promotion_id,
+                    brand,
+                    start_date,
+                    end_date,
+                    max(end_date) OVER (PARTITION BY brand ORDER BY start_date
+                ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) max_end_date
+                FROM promotion_info
+            ) t1
+    ) t2
+WHERE end_date > new_start_date
+GROUP BY brand;
+
+SELECT
+    brand,
+    count(DISTINCT event_date)
+FROM
+    (
+        SELECT
+            promotion_id,
+            brand,
+            date_add(start_date, pos) event_date,
+            start_date,
+            end_date,
+            diff,
+            item,
+            pos
+        FROM
+            (
+                SELECT
+                    promotion_id,
+                    brand,
+                    start_date,
+                    end_date,
+                    diff,
+                    split(repeat(',', diff), ',') arr
+                FROM
+                    (
+                        SELECT
+                            promotion_id,
+                            brand,
+                            start_date,
+                            end_date,
+                            datediff(end_date, start_date) diff
+                        FROM promotion_info
+                    ) t1
+            ) t2 LATERAL VIEW posexplode(arr) tmp AS pos,item
+    ) t3 GROUP BY brand;
 
