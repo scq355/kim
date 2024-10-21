@@ -64,7 +64,7 @@ public class CLinkedStack {
      * 括号匹配算法
      */
     public static boolean isBalanced(String expression) {
-        LinkedStack stack = new LinkedStack();
+        CLinkedStack stack = new CLinkedStack();
         for (char ch : expression.toCharArray()) {
             if (ch == '(') {
                 stack.push(ch);
@@ -88,7 +88,8 @@ public class CLinkedStack {
             if (Character.isDigit(ch)) {
                 operands.push(ch); // 将数字入栈
             } else if ("+-*/".indexOf(ch) != -1) {
-                while (!operators.isEmpty() && precedence(ch) <= precedence(operators.peek())) {
+                while (!operators.isEmpty()
+                        && precedence(ch) <= precedence(operators.peek())) {
                     int right = operands.pop() - '0'; // 转为数字
                     int left = operands.pop() - '0'; // 转为数字
                     char operator = operators.pop();
@@ -196,7 +197,7 @@ public class CLinkedStack {
         System.out.println("括号匹配: " + isBalanced(expr1)); // 输出: true
 
         // 表达式求值示例
-        String expr2 = "23*4+5";
+        String expr2 = "3*2+5";
         System.out.println("表达式求值: " + evaluateExpression(expr2)); // 输出: 12
 
         // 中缀转后缀示例
