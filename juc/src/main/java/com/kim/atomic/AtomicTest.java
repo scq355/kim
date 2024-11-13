@@ -73,35 +73,38 @@ public class AtomicTest {
         Print.tco(updater.get(user));
     }
 
+    /**
+     * AtomicStampedReference解决ABA问题
+     */
     @Test
     public void testAtomicStampedReference() throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(2);
-        AtomicStampedReference<Integer> stampedReference = new AtomicStampedReference<>(1, 0);
+        AtomicStampedReference<Integer> stmpRef = new AtomicStampedReference<>(1, 0);
 
         ThreadUtil.getMixedTargetThreadPool().submit(() -> {
             boolean success = false;
-            int stamp = stampedReference.getStamp();
-            Print.tco("before sleep 500,value=" + stampedReference.getReference() + " stamp=" + stampedReference.getStamp());
+            int stamp = stmpRef.getStamp();
+            Print.tco("before sleep 500,value=" + stmpRef.getReference() + " stamp=" + stmpRef.getStamp());
 
             ThreadUtil.sleepMilliSeconds(500);
-            success = stampedReference.compareAndSet(1, 10, stamp, stamp + 1);
-            Print.tco("after sleep 500 cas 1,success=" + success + " value=" + stampedReference.getReference() + " stamp=" + stampedReference.getStamp());
+            success = stmpRef.compareAndSet(1, 10, stamp, stamp + 1);
+            Print.tco("after sleep 500 cas 1,success=" + success + " value=" + stmpRef.getReference() + " stamp=" + stmpRef.getStamp());
             stamp++;
-            success = stampedReference.compareAndSet(10, 1, stamp, stamp + 1);
-            Print.tco("after sleep 500 cas 2,success=" + success + " value=" + stampedReference.getReference() + " stamp=" + stampedReference.getStamp());
+            success = stmpRef.compareAndSet(10, 1, stamp, stamp + 1);
+            Print.tco("after sleep 500 cas 2,success=" + success + " value=" + stmpRef.getReference() + " stamp=" + stmpRef.getStamp());
             latch.countDown();
         });
 
         ThreadUtil.getMixedTargetThreadPool().submit(() -> {
             boolean success = false;
-            int stamp = stampedReference.getStamp();
-            Print.tco("before sleep 1000,value=" + stampedReference.getReference() + " stamp=" + stampedReference.getStamp());
+            int stamp = stmpRef.getStamp();
+            Print.tco("before sleep 1000,value=" + stmpRef.getReference() + " stamp=" + stmpRef.getStamp());
 
             ThreadUtil.sleepMilliSeconds(1000);
-            Print.tco("after sleep 1000 stamp=" + stampedReference.getStamp());
+            Print.tco("after sleep 1000 stamp=" + stmpRef.getStamp());
 
-            success = stampedReference.compareAndSet(1, 20, stamp, stamp + 1);
-            Print.tco("after cas 3,success=" + success + " value=" + stampedReference.getReference() + " stamp=" + stampedReference.getStamp());
+            success = stmpRef.compareAndSet(1, 20, stamp, stamp + 1);
+            Print.tco("after cas 3,success=" + success + " value=" + stmpRef.getReference() + " stamp=" + stmpRef.getStamp());
             latch.countDown();
         });
 
