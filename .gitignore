@@ -144,7 +144,7 @@ build/apache-maven*
 build/scala*
 build/zinc*
 cache
-checkpoint
+datas/checkpoint
 conf/*.cmd
 conf/*.conf
 conf/*.properties
@@ -211,3 +211,4 @@ spark-warehouse/
 .jvmopts
 
 
+/datas/
