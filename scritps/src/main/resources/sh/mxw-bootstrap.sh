@@ -1,0 +1,1 @@
+/opt/module/maxwell/bin/maxwell-bootstrap  --database gmall --table activity_info --config /opt/module/maxwell/config.properties
