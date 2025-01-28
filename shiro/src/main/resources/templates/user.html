@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>HELLO SHIRO</title>
+</head>
+<body>
+<div shiro:hasPermission="user:add">
+    添加用户：<a href="/user/add">用户添加</a>
+</div>
+<div shiro:hasPermission="user:update">
+    更新用户：<a href="/user/update">用户更新</a>
+</div>
+<a href="/login">登录</a>
+</body>
+</html>

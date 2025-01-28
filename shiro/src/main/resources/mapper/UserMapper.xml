@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kim.shiro.mapper.UserMapper">
+    <resultMap id="User" type="com.kim.shiro.domain.User">
+        <id property="id" javaType="java.lang.Integer" column="id"/>
+        <result property="name" javaType="java.lang.String" column="name"/>
+        <result property="password" javaType="java.lang.String" column="password"/>
+        <result property="perms" javaType="java.lang.String" column="perms"/>
+    </resultMap>
+    <select id="findByName" resultMap="User" parameterType="string">
+        select * from user where name = #{name}
+    </select>
+
+    <select id="findById" resultMap="User" parameterType="int">
+        select * from user where id = #{id}
+    </select>
+</mapper>
