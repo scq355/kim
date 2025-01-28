@@ -37,7 +37,7 @@ public class UserRealm extends AuthorizingRealm {
         /**
          * 添加资源授权字符串
          */
-        authorizationInfo.addStringPermissions(Collections.singletonList("user:add"));
+//        authorizationInfo.addStringPermissions(Collections.singletonList("user:add"));
 
         /**
          * 获取当前登录用户
