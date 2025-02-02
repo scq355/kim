@@ -1,4 +1,4 @@
-package com.kim.spring.springmvc.demos.web.converter;
+package com.kim.springmvc.converter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
